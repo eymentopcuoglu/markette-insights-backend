@@ -10,7 +10,7 @@ const app = express();
 const port = process.env.PORT || 8000;
 
 const corsOptions = {
-    origin: 'https://markette-insights.com',
+    origin: 'http://localhost:3000',
     optionsSuccessStatus: 200,
     credentials: true
 };
