@@ -75,12 +75,16 @@ const getInitialData = async (req, res) => {
             where: { user_id: userId }
         });
 
+
         //Getting the number of retailers info
-        let numberOfRetailers = 0;
+        const availableRetailers = [];
         clientProducts.forEach(product => {
-            if (product.current_product_transactions.length > numberOfRetailers)
-                numberOfRetailers = product.current_product_transactions.length;
+            product.current_product_transactions.forEach(pricing => {
+                if (!availableRetailers.includes(pricing.market))
+                    availableRetailers.push(pricing.market);
+            });
         });
+        const numberOfRetailers = availableRetailers.length;
 
 
         //Adding product_name to userProducts using the response returned from clientProducts
