@@ -42,15 +42,6 @@ const getInitialData = async (req, res) => {
             attributes: ['product_id', 'category_id'],
             where: { client_id: clientId },
             include: [{
-                model: Product,
-                as: 'product_transactions',
-                where: {
-                    created_at: {
-                        [Op.between]: [startDate, requestDate]
-                    }
-                },
-                attributes: ['pricen', 'market', 'created_at'],
-            }, {
                 model: CurrentProduct,
                 as: 'current_product_transactions',
                 attributes: ['pricen', 'market'],
@@ -69,18 +60,33 @@ const getInitialData = async (req, res) => {
 
         let userProducts = await UserProducts.findAll({
             attributes: ['product_id'],
+            include: [{
+                model: Product,
+                required: false,
+                as: 'product_transactions',
+                where: {
+                    created_at: {
+                        [Op.between]: [startDate, requestDate]
+                    }
+                },
+                attributes: ['pricen', 'market', 'created_at'],
+            }],
             where: { user_id: userId }
         });
         let userFilters = await UserFilters.findAll({
             where: { user_id: userId }
         });
 
+
         //Getting the number of retailers info
-        let numberOfRetailers = 0;
+        const availableRetailers = [];
         clientProducts.forEach(product => {
-            if (product.current_product_transactions.length > numberOfRetailers)
-                numberOfRetailers = product.current_product_transactions.length;
+            product.current_product_transactions.forEach(pricing => {
+                if (!availableRetailers.includes(pricing.market))
+                    availableRetailers.push(pricing.market);
+            });
         });
+        const numberOfRetailers = availableRetailers.length;
 
 
         //Adding product_name to userProducts using the response returned from clientProducts
@@ -88,7 +94,8 @@ const getInitialData = async (req, res) => {
             const product = clientProducts.find(element => element.product_id === item.product_id);
             return {
                 product_id: item.product_id,
-                product_name: product.product_info.name
+                product_name: product.product_info.name,
+                product_transactions: item.product_transactions
             }
         });
 
