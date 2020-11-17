@@ -99,6 +99,13 @@ const getInitialData = async (req, res) => {
             }
         });
 
+        //Sort by availability
+        clientProducts.sort((a, b) => {
+            if (a.current_product_transactions.length > b.current_product_transactions.length) return -1;
+            else if (a.current_product_transactions.length === b.current_product_transactions.length) return 0;
+            else return 1;
+        })
+
         const client = await Client.findByPk(clientId, { attributes: ['id', 'name', 'image'] });
         data = {
             brands,
