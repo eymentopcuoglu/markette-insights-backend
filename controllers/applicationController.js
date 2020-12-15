@@ -48,7 +48,7 @@ const getInitialData = async (req, res) => {
             }, {
                 model: BarcodeList,
                 as: 'product_info',
-                attributes: ['name', 'imageurl']
+                attributes: ['name', 'imageurl','brand_id']
             }, {
                 model: Log,
                 as: 'logs',
