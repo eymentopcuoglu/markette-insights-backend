@@ -48,7 +48,7 @@ const getInitialData = async (req, res) => {
             }, {
                 model: BarcodeList,
                 as: 'product_info',
-                attributes: ['name', 'imageurl','brand_id']
+                attributes: ['name', 'imageurl', 'brand_id']
             }, {
                 model: Log,
                 as: 'logs',
@@ -104,7 +104,7 @@ const getInitialData = async (req, res) => {
             if (a.current_product_transactions.length > b.current_product_transactions.length) return -1;
             else if (a.current_product_transactions.length === b.current_product_transactions.length) return 0;
             else return 1;
-        })
+        });
 
         const client = await Client.findByPk(clientId, { attributes: ['id', 'name', 'image'] });
         data = {
@@ -147,8 +147,50 @@ const getProductAnalysisDateRangeChartData = async (req, res) => {
     }
 }
 
+//Gets the pricing information of products on the given date
+//USAGE: api.markette-insights.com/application/overview?client=1&date=01.02.2021
+const getAllProductPricingWithDate = async (req, res) => {
+    let data = {};
+    const clientId = req.query.client;
+    const startOfTheDay = moment(req.query.date).startOf('day').toDate();
+    const endOfTheDay = moment(req.query.date).endOf('day').toDate();
+
+    try {
+        data = await ClientProducts.findAll({
+            attributes: ['product_id', 'category_id'],
+            where: { client_id: clientId },
+            include: [{
+                model: Product,
+                required: false,
+                as: 'product_transactions',
+                where: {
+                    created_at: {
+                        [Op.between]: [startOfTheDay, endOfTheDay]
+                    }
+                },
+                attributes: ['pricen', 'market'],
+            }, {
+                model: BarcodeList,
+                as: 'product_info',
+                attributes: ['name', 'imageurl', 'brand_id']
+            }]
+        });
+
+        //Sort by availability
+        data.sort((a, b) => {
+            if (a.product_transactions.length > b.product_transactions.length) return -1;
+            else if (a.product_transactions.length === b.product_transactions.length) return 0;
+            else return 1;
+        });
+        res.status(200).json(data);
+    } catch (e) {
+        res.send(e);
+    }
+}
+
 
 module.exports = {
     getInitialData,
-    getProductAnalysisDateRangeChartData
+    getProductAnalysisDateRangeChartData,
+    getAllProductPricingWithDate
 };
