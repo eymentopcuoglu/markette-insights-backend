@@ -28,9 +28,7 @@ app.use('/clients', middlewares.authMiddleware.requireAuth, routes.clientRoutes)
 app.use('/channels', middlewares.authMiddleware.requireAuth, routes.channelRoutes);
 app.use('/markets', middlewares.authMiddleware.requireAuth, routes.marketRoutes);
 app.use('/categories', middlewares.authMiddleware.requireAuth, routes.categoryRoutes);
-app.use('/sub-categories', middlewares.authMiddleware.requireAuth, routes.subCategoryRoutes);
 app.use('/brands', middlewares.authMiddleware.requireAuth, routes.brandRoutes);
-app.use('/sub-brands', middlewares.authMiddleware.requireAuth, routes.subBrandRoutes);
 app.use('/client-products', middlewares.authMiddleware.requireAuth, routes.clientProductsRoutes);
 app.use('/user-products', middlewares.authMiddleware.requireAuth, routes.userProductsRoutes);
 

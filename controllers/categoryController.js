@@ -22,8 +22,9 @@ deleteAllCategories = async (req, res) => {
 addCategory = async (req, res) => {
     try {
         const category = await Category.create({
-            name: req.body.name
-        }, { fields: ['name'] });
+            name: req.body.name,
+            parent_category_id: req.body.parent_category_id
+        }, { fields: ['name', 'parent_category_id'] });
         res.send('Successfully saved the category : ' + category);
     } catch (e) {
         res.send('Error occurred ' + e);

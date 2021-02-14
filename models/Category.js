@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             this.hasMany(models['SubCategory'], { foreignKey: 'category_id' });
             this.hasMany(models['ClientProducts'], { foreignKey: 'category_id' });
+            this.belongsTo(models['Category'], { as: 'parent_category', foreignKey: 'parent_category_id' })
         }
     }
 
@@ -25,18 +26,12 @@ module.exports = (sequelize, DataTypes) => {
         name: {
             type: DataTypes.STRING
         },
-        created_at: {
-            allowNull: false,
-            type: 'TIMESTAMP'
-        },
-        updated_at: {
-            allowNull: false,
-            type: 'TIMESTAMP'
+        parent_category_id: {
+            type: DataTypes.INTEGER.UNSIGNED
         }
-
     }, {
         sequelize,
-        tableName: 'categories',
+        tableName: 'Category',
         underscored: true,
         timestamps: false,
         charset: 'utf8mb4',

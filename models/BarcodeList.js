@@ -10,8 +10,9 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            this.belongsTo(models['SubBrand'], { foreignKey: 'brand_id' });
+            this.belongsTo(models['Brand'], { as: 'brand', foreignKey: 'brand_id' });
             this.hasMany(models['ClientProducts'], {
+                as: 'clientProducts',
                 sourceKey: 'productid',
                 foreignKey: 'product_id',
             });
@@ -40,10 +41,6 @@ module.exports = (sequelize, DataTypes) => {
         imageurl: {
             type: DataTypes.STRING(255),
             defaultValue: null
-        },
-        price: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
         },
         category1: {
             type: DataTypes.STRING(255),

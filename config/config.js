@@ -13,7 +13,8 @@ module.exports = {
             dialectOptions: {
                 collate: "utf8mb4_unicode_ci"
             }
-        }
+        },
+        timestamps: false
     },
     production: {
         username: process.env.DB_USERNAME,
@@ -27,6 +28,7 @@ module.exports = {
             dialectOptions: {
                 collate: "utf8mb4_unicode_ci"
             }
-        }
+        },
+        timestamps: false
     }
 };

@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
             this.belongsTo(models['Channel'], { foreignKey: 'channel_id' });
             this.hasMany(models['Product'], { foreignKey: 'market' });
             this.hasMany(models['CurrentProduct'], { foreignKey: 'market' });
+            this.hasMany(models['Insert'], { foreignKey: 'market_id' });
         }
     }
 

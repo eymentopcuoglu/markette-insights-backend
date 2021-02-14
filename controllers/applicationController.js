@@ -2,10 +2,9 @@ const Market = require('../models/index')['Market'];
 const Channel = require('../models/index')['Channel'];
 
 const Category = require('../models/index')['Category'];
-const SubCategory = require('../models/index')['SubCategory'];
-
 const Brand = require('../models/index')['Brand'];
-const SubBrand = require('../models/index')['SubBrand'];
+const Supplier = require('../models/index')['Supplier'];
+const Insert = require('../models/index')['Insert'];
 
 const BarcodeList = require('../models/index')['BarcodeList'];
 const Client = require('../models/index')['Client'];
@@ -22,6 +21,7 @@ const sequelize = require('../models/index').sequelize;
 const { Op } = require('sequelize');
 
 const getAverageStandardDeviation = require('../utils/mathUtil').getAverageStandardDeviation;
+const dataNormalizationUtil = require('../utils/dataNormalizationUtil');
 
 const getInitialData = async (req, res) => {
     let data = {};
@@ -33,12 +33,8 @@ const getInitialData = async (req, res) => {
     try {
         const channels = await Channel.findAll({ attributes: ['id', 'name'] });
         const markets = await Market.findAll({ attributes: ['id', 'name', 'image', 'channel_id'] });
-        const categories = await Category.findAll({ attributes: ['id', 'name'] });
-        const subCategories = await SubCategory.findAll({ attributes: ['id', 'name', 'category_id'] });
-        const brands = await Brand.findAll({ attributes: ['id', 'name'] });
-        const subBrands = await SubBrand.findAll({ attributes: ['id', 'name', 'brand_id'] });
 
-        const clientProducts = await ClientProducts.findAll({
+        let clientProducts = await ClientProducts.findAll({
             attributes: ['product_id', 'category_id'],
             where: { client_id: clientId },
             include: [{
@@ -48,13 +44,124 @@ const getInitialData = async (req, res) => {
             }, {
                 model: BarcodeList,
                 as: 'product_info',
-                attributes: ['name', 'imageurl', 'brand_id']
+                attributes: ['name', 'imageurl', 'brand_id'],
+                include: [{
+                    model: Brand,
+                    as: 'brand',
+                    attributes: ['id', 'name', 'supplier_id', 'parent_brand_id'],
+                    include: [{
+                        model: Brand,
+                        as: 'parent_brand',
+                        attributes: ['id', 'name', 'supplier_id'],
+                        include: [{
+                            model: Supplier,
+                            as: 'supplier',
+                            attributes: ['id', 'name'],
+                        }]
+                    },
+                        {
+                            model: Supplier,
+                            as: 'supplier',
+                            attributes: ['id', 'name'],
+                        }
+                    ]
+                }]
             }, {
                 model: Log,
                 as: 'logs',
                 attributes: ['market', 'pricen1', 'pricen2', 'created_at']
-            }]
+            }, {
+                model: Category,
+                as: 'category',
+                attributes: ['id', 'name', 'parent_category_id'],
+                include: [{
+                    model: Category,
+                    as: 'parent_category',
+                    attributes: ['id', 'name'],
+                }
+                ]
+            }
+            ]
         });
+
+        let categories = new Map();
+        let subCategories = new Map();
+        let brands = new Map();
+        let subBrands = new Map();
+        let suppliers = new Map();
+
+        clientProducts = clientProducts.map(element => {
+                const resultingElement = {
+                    product_id: element.product_id,
+                    current_product_transactions: element.current_product_transactions,
+                    logs: element.logs,
+                    product_info: {
+                        name: element.product_info.name,
+                        imageurl: element.product_info.imageurl
+                    }
+                }
+                if (element.product_info.brand.parent_brand) {
+                    brands.set(element.product_info.brand.parent_brand.id, {
+                        id: element.product_info.brand.parent_brand.id,
+                        name: element.product_info.brand.parent_brand.name,
+                        supplier_id: element.product_info.brand.parent_brand.supplier_id
+                    });
+                    subBrands.set(element.product_info.brand.id, {
+                        id: element.product_info.brand.id,
+                        name: element.product_info.brand.name,
+                        brand_id: element.product_info.brand.parent_brand_id
+                    });
+                    suppliers.set(element.product_info.brand.parent_brand.supplier.id, {
+                        id: element.product_info.brand.parent_brand.supplier.id,
+                        name: element.product_info.brand.parent_brand.supplier.name
+                    });
+                    resultingElement.product_info.brand_id = element.product_info.brand.parent_brand.id;
+                    resultingElement.product_info.sub_brand_id = element.product_info.brand.id;
+                } else {
+                    brands.set(element.product_info.brand.id, {
+                        id: element.product_info.brand.id,
+                        name: element.product_info.brand.name,
+                        supplier_id: element.product_info.brand.supplier_id
+                    });
+                    suppliers.set(element.product_info.brand.supplier.id, {
+                        id: element.product_info.brand.supplier.id,
+                        name: element.product_info.brand.supplier.name
+                    });
+                    resultingElement.product_info.brand_id = element.product_info.brand.id;
+                    resultingElement.product_info.sub_brand_id = null;
+                }
+
+                if (element.category.parent_category) {
+                    categories.set(element.category.parent_category.id, {
+                        id: element.category.parent_category.id,
+                        name: element.category.parent_category.name
+                    });
+                    subCategories.set(element.category.id, {
+                        id: element.category.id,
+                        name: element.category.name,
+                        category_id: element.category.parent_category_id
+                    });
+                    resultingElement.product_info.category_id = element.category.parent_category.id;
+                    resultingElement.product_info.sub_category_id = element.category.id;
+                } else {
+                    categories.set(element.category.id, {
+                        id: element.category.id,
+                        name: element.category.name
+                    });
+                    resultingElement.product_info.category_id = element.category.id;
+                    resultingElement.product_info.sub_category_id = null;
+                }
+                return resultingElement;
+            }
+        );
+
+
+        categories = dataNormalizationUtil.removeDuplicatesById(categories);
+        subCategories = dataNormalizationUtil.removeDuplicatesById(subCategories);
+        brands = dataNormalizationUtil.removeDuplicatesById(brands);
+        subBrands = dataNormalizationUtil.removeDuplicatesById(subBrands);
+        suppliers = dataNormalizationUtil.removeDuplicatesById(suppliers);
+
         const numberOfProducts = clientProducts.length;
         const averageStandardDeviation = getAverageStandardDeviation(clientProducts);
 
@@ -108,10 +215,11 @@ const getInitialData = async (req, res) => {
 
         const client = await Client.findByPk(clientId, { attributes: ['id', 'name', 'image'] });
         data = {
-            brands,
-            subBrands,
             categories,
             subCategories,
+            brands,
+            subBrands,
+            suppliers,
             channels,
             markets,
             client,
@@ -188,9 +296,124 @@ const getAllProductPricingWithDate = async (req, res) => {
     }
 }
 
+const getInserts = async (req, res) => {
+    let data = [];
+
+
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    let channels, retailers, suppliers, categories, brands;
+    if (req.query.channels) {
+        channels = req.query.channels.split(',');
+        channels = {
+            channel_id: {
+                [Op.in]: channels
+            }
+        }
+    }
+    if (req.query.retailers) {
+        retailers = req.query.retailers.split(',');
+        retailers = {
+            id: {
+                [Op.in]: retailers
+            }
+        }
+    }
+    if (req.query.suppliers) {
+        suppliers = req.query.suppliers.split(',');
+        suppliers = {
+            supplier_id: {
+                [Op.in]: suppliers
+            }
+        }
+    }
+    if (req.query.categories) {
+        categories = req.query.categories.split(',');
+        categories = {
+            include: {
+                model: BarcodeList,
+                as: 'products',
+                attributes: [],
+                required: true,
+                include: {
+                    model: ClientProducts,
+                    as: 'clientProducts',
+                    attributes: [],
+                    required: true,
+                    include: {
+                        model: Category,
+                        as: 'category',
+                        required: true,
+                        attributes: [],
+                        where: {
+                            [Op.or]: [
+                                {
+                                    id: {
+                                        [Op.in]: categories
+                                    }
+                                },
+                                {
+                                    parent_category_id: {
+                                        [Op.in]: categories
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+    }
+    if (req.query.brands) {
+        brands = req.query.brands.split(',');
+        brands = {
+            id: {
+                [Op.in]: brands
+            }
+        }
+    }
+
+    try {
+        data = await Insert.findAll({
+            attributes: ['id', 'market_id', 'num_of_pages', 'url', 'start_date', 'end_date', 'duration'],
+            where: {
+                start_date: {
+                    [Op.gte]: startDate
+                },
+                end_date: {
+                    [Op.lte]: endDate
+                }
+            },
+            include: [{
+                model: Brand,
+                as: 'brands',
+                attributes: [],
+                where: {
+                    ...brands,
+                    ...suppliers
+                },
+                ...categories
+            }, {
+                model: Market,
+                as: 'markets',
+                where: {
+                    ...retailers,
+                    ...channels
+                }
+            }
+            ]
+        })
+        ;
+        res.status(200).json(data);
+    } catch (e) {
+        res.send(e);
+    }
+}
+
 
 module.exports = {
     getInitialData,
     getProductAnalysisDateRangeChartData,
-    getAllProductPricingWithDate
+    getAllProductPricingWithDate,
+    getInserts
 };
