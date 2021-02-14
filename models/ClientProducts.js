@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'productid',
                 as: 'current_product_transactions'
             });
-            this.belongsTo(models['Category'], { foreignKey: 'category_id' });
+            this.belongsTo(models['Category'], { as: 'category', foreignKey: 'category_id' });
             this.hasOne(models['BarcodeList'], {
                 sourceKey: 'product_id',
                 foreignKey: 'productid',
@@ -29,43 +29,31 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     ClientProducts.init({
-        id: {
-            allowNull: false,
-            autoIncrement: true,
-            primaryKey: true,
-            type: DataTypes.BIGINT(20).UNSIGNED,
-        },
         client_id: {
             allowNull: false,
-            type: DataTypes.INTEGER.UNSIGNED
+            type: DataTypes.INTEGER.UNSIGNED,
+            primaryKey: true
         },
         product_id: {
             type: DataTypes.STRING(45),
             references: {
-                model: 'products2s',
+                model: 'barcode_lists',
                 key: 'productid'
             },
-            allowNull: false
+            allowNull: false,
+            primaryKey: true
         },
         category_id: {
             type: DataTypes.INTEGER.UNSIGNED,
             references: {
-                model: 'sub_categories',
+                model: 'Category',
                 key: 'id'
             },
             allowNull: false
-        },
-        created_at: {
-            allowNull: false,
-            type: 'TIMESTAMP'
-        },
-        updated_at: {
-            allowNull: false,
-            type: 'TIMESTAMP'
         }
     }, {
         sequelize,
-        tableName: 'client_products',
+        tableName: 'Client_Product_Category',
         timestamps: false,
         underscored: true,
         charset: 'utf8mb4',

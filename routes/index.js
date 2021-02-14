@@ -5,9 +5,7 @@ const productRoutes = require('./products');
 const userFiltersRoutes = require('./userFilters');
 const marketRoutes = require('./markets');
 const categoryRoutes = require('./categories');
-const subCategoryRoutes = require('./subCategories');
 const brandRoutes = require('./brands');
-const subBrandRoutes = require('./subBrands');
 const clientProductsRoutes = require('./clientProducts');
 const userProductsRoutes = require('./userProducts');
 
@@ -23,9 +21,7 @@ module.exports = {
     productRoutes,
     marketRoutes,
     categoryRoutes,
-    subCategoryRoutes,
     brandRoutes,
-    subBrandRoutes,
     clientProductsRoutes,
     userProductsRoutes
 

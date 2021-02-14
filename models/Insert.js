@@ -3,46 +3,57 @@ const {
     Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-    class Brand extends Model {
+    class Insert extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            this.hasMany(models['BarcodeList'], { as: 'products', foreignKey: 'brand_id' });
-            this.belongsTo(models['Supplier'], { as: 'supplier', foreignKey: 'supplier_id' })
-            this.belongsToMany(models['Insert'], {
+            this.belongsToMany(models['Brand'], {
+                as: 'brands',
                 through: 'Insert_Brand',
-                foreignKey: 'brand_id'
+                foreignKey: 'insert_id'
             });
-            this.belongsTo(models['Brand'], { as: 'parent_brand', foreignKey: 'parent_brand_id' });
+            this.belongsTo(models['Market'], {
+                as: 'markets',
+                foreignKey: 'market_id'
+            });
         }
     }
 
-    Brand.init({
+    Insert.init({
         id: {
             allowNull: false,
             autoIncrement: true,
             primaryKey: true,
             type: DataTypes.INTEGER.UNSIGNED
         },
-        name: {
-            type: DataTypes.STRING
+        market_id: {
+            type: DataTypes.BIGINT(20).UNSIGNED
         },
-        supplier_id: {
-            type: DataTypes.INTEGER.UNSIGNED
+        num_of_pages: {
+            type: DataTypes.TINYINT.UNSIGNED
         },
-        parent_brand_id: {
-            type: DataTypes.INTEGER.UNSIGNED
+        url: {
+            type: DataTypes.STRING(150)
+        },
+        start_date: {
+            type: DataTypes.DATEONLY
+        },
+        end_date: {
+            type: DataTypes.DATEONLY
+        },
+        duration: {
+            type: DataTypes.TINYINT
         }
     }, {
         sequelize,
-        tableName: 'Brand',
+        tableName: 'Insert',
         underscored: true,
         timestamps: false,
         charset: 'utf8mb4',
         collate: 'utf8mb4_unicode_ci'
     });
-    return Brand;
+    return Insert;
 };

@@ -22,8 +22,10 @@ deleteAllBrands = async (req, res) => {
 addBrand = async (req, res) => {
     try {
         const brand = await Brand.create({
-            name: req.body.name
-        }, { fields: ['name'] });
+            name: req.body.name,
+            supplier_id: req.body.supplier_id,
+            parent_brand_id: req.body.parent_brand_id
+        }, { fields: ['name', 'supplier_id', 'parent_brand_id'] });
         res.send('Successfully saved the brand : ' + brand);
     } catch (e) {
         res.send('Error occurred ' + e);
