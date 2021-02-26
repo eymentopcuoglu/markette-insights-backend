@@ -8,6 +8,7 @@ const categoryRoutes = require('./categories');
 const brandRoutes = require('./brands');
 const clientProductsRoutes = require('./clientProducts');
 const userProductsRoutes = require('./userProducts');
+const productComparisonRoutes = require('./productComparison');
 
 
 const applicationRoutes = require('./application');
@@ -23,6 +24,6 @@ module.exports = {
     categoryRoutes,
     brandRoutes,
     clientProductsRoutes,
-    userProductsRoutes
-
+    userProductsRoutes,
+    productComparisonRoutes
 }
