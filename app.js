@@ -33,6 +33,7 @@ app.use('/client-products', middlewares.authMiddleware.requireAuth, routes.clien
 app.use('/user-products', middlewares.authMiddleware.requireAuth, routes.userProductsRoutes);
 
 app.use('/application', middlewares.authMiddleware.requireAuth, routes.applicationRoutes);
+app.use('/product-comparison', middlewares.authMiddleware.requireAuth, routes.productComparisonRoutes);
 
 
 app.get('/', (req, res) => {
