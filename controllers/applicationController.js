@@ -90,70 +90,72 @@ const getInitialData = async (req, res) => {
         let subBrands = new Map();
         let suppliers = new Map();
 
-        clientProducts = clientProducts.map(element => {
-                const resultingElement = {
-                    product_id: element.product_id,
-                    current_product_transactions: element.current_product_transactions,
-                    logs: element.logs,
-                    product_info: {
-                        name: element.product_info.name,
-                        imageurl: element.product_info.imageurl
-                    }
+        clientProducts = clientProducts.reduce((result, element) => {
+            if (!element.product_info)
+                return result;
+            const resultingElement = {
+                product_id: element.product_id,
+                current_product_transactions: element.current_product_transactions,
+                logs: element.logs,
+                product_info: {
+                    name: element.product_info.name,
+                    imageurl: element.product_info.imageurl
                 }
-                if (element.product_info.brand.parent_brand) {
-                    brands.set(element.product_info.brand.parent_brand.id, {
-                        id: element.product_info.brand.parent_brand.id,
-                        name: element.product_info.brand.parent_brand.name,
-                        supplier_id: element.product_info.brand.parent_brand.supplier_id
-                    });
-                    subBrands.set(element.product_info.brand.id, {
-                        id: element.product_info.brand.id,
-                        name: element.product_info.brand.name,
-                        brand_id: element.product_info.brand.parent_brand_id
-                    });
-                    suppliers.set(element.product_info.brand.parent_brand.supplier.id, {
-                        id: element.product_info.brand.parent_brand.supplier.id,
-                        name: element.product_info.brand.parent_brand.supplier.name
-                    });
-                    resultingElement.product_info.brand_id = element.product_info.brand.parent_brand.id;
-                    resultingElement.product_info.sub_brand_id = element.product_info.brand.id;
-                } else {
-                    brands.set(element.product_info.brand.id, {
-                        id: element.product_info.brand.id,
-                        name: element.product_info.brand.name,
-                        supplier_id: element.product_info.brand.supplier_id
-                    });
-                    suppliers.set(element.product_info.brand.supplier.id, {
-                        id: element.product_info.brand.supplier.id,
-                        name: element.product_info.brand.supplier.name
-                    });
-                    resultingElement.product_info.brand_id = element.product_info.brand.id;
-                    resultingElement.product_info.sub_brand_id = null;
-                }
-
-                if (element.category.parent_category) {
-                    categories.set(element.category.parent_category.id, {
-                        id: element.category.parent_category.id,
-                        name: element.category.parent_category.name
-                    });
-                    subCategories.set(element.category.id, {
-                        id: element.category.id,
-                        name: element.category.name,
-                        category_id: element.category.parent_category_id
-                    });
-                    resultingElement.product_info.category_id = element.category.parent_category.id;
-                    resultingElement.product_info.sub_category_id = element.category.id;
-                } else {
-                    categories.set(element.category.id, {
-                        id: element.category.id,
-                        name: element.category.name
-                    });
-                    resultingElement.product_info.category_id = element.category.id;
-                    resultingElement.product_info.sub_category_id = null;
-                }
-                return resultingElement;
             }
-        );
+            if (element.product_info.brand.parent_brand) {
+                brands.set(element.product_info.brand.parent_brand.id, {
+                    id: element.product_info.brand.parent_brand.id,
+                    name: element.product_info.brand.parent_brand.name,
+                    supplier_id: element.product_info.brand.parent_brand.supplier_id
+                });
+                subBrands.set(element.product_info.brand.id, {
+                    id: element.product_info.brand.id,
+                    name: element.product_info.brand.name,
+                    brand_id: element.product_info.brand.parent_brand_id
+                });
+                suppliers.set(element.product_info.brand.parent_brand.supplier.id, {
+                    id: element.product_info.brand.parent_brand.supplier.id,
+                    name: element.product_info.brand.parent_brand.supplier.name
+                });
+                resultingElement.product_info.brand_id = element.product_info.brand.parent_brand.id;
+                resultingElement.product_info.sub_brand_id = element.product_info.brand.id;
+            } else {
+                brands.set(element.product_info.brand.id, {
+                    id: element.product_info.brand.id,
+                    name: element.product_info.brand.name,
+                    supplier_id: element.product_info.brand.supplier_id
+                });
+                suppliers.set(element.product_info.brand.supplier.id, {
+                    id: element.product_info.brand.supplier.id,
+                    name: element.product_info.brand.supplier.name
+                });
+                resultingElement.product_info.brand_id = element.product_info.brand.id;
+                resultingElement.product_info.sub_brand_id = null;
+            }
+
+            if (element.category.parent_category) {
+                categories.set(element.category.parent_category.id, {
+                    id: element.category.parent_category.id,
+                    name: element.category.parent_category.name
+                });
+                subCategories.set(element.category.id, {
+                    id: element.category.id,
+                    name: element.category.name,
+                    category_id: element.category.parent_category_id
+                });
+                resultingElement.product_info.category_id = element.category.parent_category.id;
+                resultingElement.product_info.sub_category_id = element.category.id;
+            } else {
+                categories.set(element.category.id, {
+                    id: element.category.id,
+                    name: element.category.name
+                });
+                resultingElement.product_info.category_id = element.category.id;
+                resultingElement.product_info.sub_category_id = null;
+            }
+            result.push(resultingElement)
+            return result;
+        }, []);
 
 
         categories = dataNormalizationUtil.removeDuplicatesById(categories);
