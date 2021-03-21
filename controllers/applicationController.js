@@ -91,8 +91,11 @@ const getInitialData = async (req, res) => {
         let suppliers = new Map();
 
         clientProducts = clientProducts.reduce((result, element) => {
+
+            //TODO: Instead of doing this consider INNER JOINing with barcode_list in query?
             if (!element.product_info)
                 return result;
+
             const resultingElement = {
                 product_id: element.product_id,
                 current_product_transactions: element.current_product_transactions,
@@ -198,6 +201,7 @@ const getInitialData = async (req, res) => {
         const numberOfRetailers = availableRetailers.length;
 
 
+        //TODO: Cannot read property 'product_info' of undefined
         //Adding product_name to userProducts using the response returned from clientProducts
         userProducts = userProducts.map((item) => {
             const product = clientProducts.find(element => element.product_id === item.product_id);
@@ -281,6 +285,7 @@ const getAllProductPricingWithDate = async (req, res) => {
                 attributes: ['pricen', 'market'],
             }, {
                 model: BarcodeList,
+                required: true,
                 as: 'product_info',
                 attributes: ['name', 'imageurl', 'brand_id']
             }]
