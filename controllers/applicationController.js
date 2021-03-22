@@ -429,6 +429,11 @@ const getLastInserts = async (req, res) => {
     try {
         data = await Insert.findAll({
             attributes: ['id', 'market_id', 'num_of_pages', 'url', 'start_date', 'end_date', 'duration'],
+            include: [{
+                model: Market,
+                as: 'markets',
+            }
+            ],
             limit: 5,
             order: [['id', 'DESC']]
         });
