@@ -303,9 +303,12 @@ const getAllProductPricingWithDate = async (req, res) => {
     }
 }
 
+// Gets the specified inserts
+// USAGE: api.markette-insights.com/application
+//  /insert-tracking?startDate=2020-11-29T18:43:33.000Z
+//  &endDate=2021-02-14T18:43:33.000Z&channels=1&retailers=3&suppliers=5&brands=6,7,8,18,21,27,28,29
 const getInserts = async (req, res) => {
     let data = [];
-
 
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
@@ -418,9 +421,28 @@ const getInserts = async (req, res) => {
 }
 
 
+//Gets the last 5 inserts
+//USAGE: api.markette-insights.com/application/insert-tracking/initial
+const getLastInserts = async (req, res) => {
+    let data = [];
+
+    try {
+        data = await Insert.findAll({
+            attributes: ['id', 'market_id', 'num_of_pages', 'url', 'start_date', 'end_date', 'duration'],
+            limit: 5,
+            order: [['id', 'DESC']]
+        });
+        res.status(200).json(data);
+    } catch (e) {
+        res.send(e);
+    }
+}
+
+
 module.exports = {
     getInitialData,
     getProductAnalysisDateRangeChartData,
     getAllProductPricingWithDate,
-    getInserts
+    getInserts,
+    getLastInserts
 };
